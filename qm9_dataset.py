@@ -123,7 +123,8 @@ class QM9(InMemoryDataset):
     symbols = {'H': 1, 'C': 6, 'N': 7, 'O': 8, 'F': 9}
     bonds = {BT.SINGLE: 0, BT.DOUBLE: 1, BT.TRIPLE: 2, BT.AROMATIC: 3}
 
-    def __init__(self, root, transform=None, pre_transform=None, pre_filter=None):
+    def __init__(self, root, transform=None, pre_transform=None, pre_filter=None, excluded_mols_file: str = None):
+        self.excluded_mols_file = excluded_mols_file
         super(QM9, self).__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
 
@@ -148,7 +149,10 @@ class QM9(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return 'data_v2.pt'
+        name = "data_v2.pt"
+        if self.excluded_mols_file is not None:
+            name = "data_v2_excluded.pt"
+        return name
 
     def download(self):
         file_path = download_url(self.raw_url, self.raw_dir)
@@ -170,6 +174,10 @@ class QM9(InMemoryDataset):
 
         with open(self.raw_paths[2], 'r') as f:
             skip = [int(x.split()[0]) - 1 for x in f.read().split('\n')[9:-2]]
+        if self.excluded_mols_file is not None:
+            with open(self.excluded_mols_file, 'r') as f:
+                skip2 = {int(x.split(":")[-1])-1 for x in f.read().split('\n')[:-1]}
+            skip = list(set(skip).union(skip2))
 
         suppl = Chem.SDMolSupplier(self.raw_paths[0], removeHs=False,
                                    sanitize=False)
