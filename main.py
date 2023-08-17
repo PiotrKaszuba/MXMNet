@@ -29,6 +29,8 @@ parser.add_argument('--dataset', type=str, default="QM9", help='Dataset')
 parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
 parser.add_argument('--target', type=int, default="7", help='Index of target (0~11) for prediction')
 parser.add_argument('--cutoff', type=float, default=5.0, help='Distance cutoff used in the global layer')
+parser.add_argument('--excluded_mols_file', type=str, default=None,
+                    help='Path for the file with excluded mols in format "qm9:mol_id".')
 
 args = parser.parse_args()
 
@@ -69,7 +71,8 @@ class MyTransform(object):
 
 #Download and preprocess dataset
 path = osp.join(osp.dirname(osp.realpath(__file__)), '.', 'data', 'QM9')
-dataset = QM9(path, transform=MyTransform()).shuffle()
+dataset, perm = QM9(path, transform=MyTransform(), excluded_mols_file=args.excluded_mols_file).shuffle(return_perm=True)
+print(perm)
 print('# of graphs:', len(dataset))
 
 # Split dataset
