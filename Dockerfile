@@ -16,7 +16,3 @@ RUN python --version
 RUN pip freeze
 # show CUDA version
 RUN nvcc --version
-
-# entrypoint the same as 4 commands above; that is: check python version, check packages installed, check CUDA version, check GPU usage
-# and run python and check if cuda is available in torch
-ENTRYPOINT python --version && pip freeze && nvcc --version && python -c "import torch; print('CUDA available: ', torch.cuda.is_available())"
